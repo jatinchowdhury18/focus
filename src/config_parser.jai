@@ -147,6 +147,22 @@ parse_config :: (name: string, file_path: string, file_data: string, for_highlig
         if it.overrides.tab_size.is_set then Clamp(*it.overrides.tab_size.value, 1, 100);
     }
 
+    for * result.config.build.commands {
+        command_name := it.name;
+        build_command := *(it.build_command);
+        if (build_command.count > 0
+            && build_command.*[0] == #char"["
+            && build_command.*[build_command.count - 1] == #char"]") {
+            route_command_name := trim(build_command.*, "[] ");
+            for result.config.build.commands {
+                if (it.name == route_command_name && command_name != it.name) {
+                    build_command.* = it.build_command;
+                    break;
+                }
+            }
+        }
+    }
+
     result.success   = true;
     result.error_msg = "";
 
